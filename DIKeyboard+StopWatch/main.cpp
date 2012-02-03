@@ -22,63 +22,19 @@ using std::exit;
 
 #include <string>
 
-#include "../../unsorted/windows common.h"
-#include "../../unsorted/StopWatch.h"
-#include "../../unsorted/DirectInput Wrapper.h"
-#include "../../unsorted/Keyboard Wrapper.h"
-#include "../../unsorted/CPU clock.h"
+#include <windows/common.h>
+#include <StopWatch.h>
+#include <direct input\DirectInput Wrapper.h>
+#include <direct input\Keyboard Wrapper.h>
+#include <CPU clock.h>
 
-#include <GL/glut.h>
-//#include <Shellapi.h>
-//#include <DXUT.h>
-
-
-
-void OnDraw()
-{
-	/*glClearColor(0,0,0.1,0);
-	glClear(GL_COLOR_BUFFER_BIT);*/
-	throw 0;
-}
-
-void OnSpecial(int key , int x , int y)
-{
-	/*if(key == GLUT_KEY_RIGHT)
-		output << "right\t";
-	if(key == GLUT_KEY_LEFT)
-		output << "left\t";
-	if(key == GLUT_KEY_UP)
-		output << "up\t";
-	if(key == GLUT_KEY_DOWN)
-		output << "down\t";
-	if(key == GLUT_KEY_LEFT || key == GLUT_KEY_RIGHT || key == GLUT_KEY_UP || key == GLUT_KEY_DOWN)
-		output << endl;*/
-}
-
-void onIdle(void)
-{
-	//static int i = 0;
-	////if(!i)
-	////{
-	////	system("PAUSE");
-	////} // end if
-	//
-	//if(++i > 1000000) throw 0;
-	//
-	//
-
-	//glClearColor(0,(i%10000)/10000.0,0.1,0);
-	//glClear(GL_COLOR_BUFFER_BIT);
-	////glFlush();
-	//glutSwapBuffers();
-
-	
-} // end fuction onIdle
+#include <Graphics/glut window.h>
 
 
 int WINAPI WinMain(InstanceHandle currentInstance , InstanceHandle PreviusInstance , CHAR *commandLineArguments , int windowMode)
 {
-	ofstream output("c:/output/test.txt");
+	GLUT::Window window("Test Window");
+	ofstream output("log.txt");
 	output<<std::setprecision(6)<<std::fixed;
 	StopWatch timer;
 
@@ -87,40 +43,14 @@ int WINAPI WinMain(InstanceHandle currentInstance , InstanceHandle PreviusInstan
 		exit(0);
 	} // end if
 
-	int argc = 1;
-	char *p = "hi!";
-	char **argv = &p;
-	glutInit(&argc,argv);
-	glutInitWindowPosition(320,320);
-	glutInitWindowSize(320,320);
-	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-	glutCreateWindow("Test Window");
 
-	CPUclock::setTimeUnit("ìs");
+	CPUclock::setUnit("ìs");
 
-	output<<setw(15)<<CPUclock::currentTime()<<CPUclock::getTimeUnit()<<endl;
+	output<< "current time: " <<setw(15)<<CPUclock::currentTime()<<CPUclock::getUnit()<<endl;
 	
-
-	
-
-	//glutFullScreen();
-	glutDisplayFunc(OnDraw);
-	glutIdleFunc(onIdle);
-	glutSpecialFunc(OnSpecial);
-
-	//timer.push();
-	try
-	{
-		glutMainLoop();
-	}
-	catch(int)
-	{
-		// do nothing
-	} // end catch
-	//output << timer.pop() / 1000000 << timer.getUnit() << endl;
 
 	DirectInput directInput(currentInstance);
-	DIKeyboard keyboard(directInput.iObject,FindWindow(0,"Test Window"));
+	DIKeyboard keyboard(directInput,window.getHandle());
 	
 	keyboard.acquire();
 	
@@ -133,7 +63,7 @@ int WINAPI WinMain(InstanceHandle currentInstance , InstanceHandle PreviusInstan
 	while(++i <= 1000000000)
 	{
 		ZeroMemory(keys,sizeof(keys));
-		keyboard->GetDeviceState(sizeof(keys),keys);
+		keyboard.getDeviceState(sizeof(keys),keys);
 
 		if(keys[DIK_RIGHT] & 0x80)
 			output << "right\t";
@@ -144,17 +74,18 @@ int WINAPI WinMain(InstanceHandle currentInstance , InstanceHandle PreviusInstan
 		if(keys[DIK_DOWN] & 0x80)
 			output << "down\t";
 		if(keys[DIK_RIGHT] & 0x80 || keys[DIK_LEFT] & 0x80 || keys[DIK_UP] & 0x80 || keys[DIK_DOWN] & 0x80)
-			output << endl;
+			output << '\n';
 
 		if(i%100 == 0)
 		{
-			timer.pop();
+			double d = timer.pop();
 			timer.push();
 			n++;
+			output << d  << timer.getUnit() << '\n';
 			glClearColor(0,(n%255)/255.0,0.1,0);
 			glClear(GL_COLOR_BUFFER_BIT);
 			//glFlush();
-			glutSwapBuffers();
+			window.swapBuffers();
 		} // end if
 
 		if(keys[DIK_ESCAPE] & 0x80)
@@ -164,11 +95,11 @@ int WINAPI WinMain(InstanceHandle currentInstance , InstanceHandle PreviusInstan
 	} // end while
 	timer.pop();
 
-	output << timer.pop() / 1000000 << timer.getUnit() << endl;
-	output << n <<endl;
-	output<<setw(15)<<CPUclock::currentTime()<<CPUclock::getTimeUnit()<<endl;
+	output << "average iteration duration: " << timer.pop() / i << timer.getUnit() << " (1 buffer swap every 100 iterations)" << endl;
+	output << n << " 100-iteration milestones" << endl;
+	output<< "current time: " <<setw(15)<<CPUclock::currentTime()<<CPUclock::getUnit()<<endl;
 
 	output.close();
-	system("start c:/output/test.txt /B");
+	system("start log.txt /B");
 } // end function WinMain
 
