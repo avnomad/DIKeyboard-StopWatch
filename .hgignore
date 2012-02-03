@@ -2,3 +2,8 @@ syntax: regexp
 Debug/*
 Release/*
 ipch/*
+syntax: glob
+DIKeyboard+StopWatch.opensdf
+DIKeyboard+StopWatch.sdf
+DIKeyboard+StopWatch.suo
+DIKeyboard+StopWatch/log.txt
